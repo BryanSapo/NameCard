@@ -121,7 +121,10 @@ CARD_TEMPLATE = Template(
 )
 
 # ---------------------------- Routes ---------------------------- #
-
+@app.get("/healthz")
+async def healthz():
+    return {"status": "ok"}
+  
 @app.get("/", response_class=HTMLResponse)
 async def index() -> HTMLResponse:
     """顯示表單頁面"""
