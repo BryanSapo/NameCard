@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>公司內部名片產生器</title>
+
+    <!-- Google Font & Icons (可自行下載至內網或保留 CDN) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <style>
+      :root {
+        --brand-primary: #1abc9c;
+        --gray-100: #f3f4f6;
+        --gray-300: #d1d5db;
+        --gray-600: #4b5563;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0 auto;
+        max-width: 720px;
+        padding: 2rem 1rem 4rem;
+        font-family: "Inter", sans-serif;
+        line-height: 1.6;
+      }
+      h1 {
+        color: var(--brand-primary);
+        font-size: 1.9rem;
+        margin-bottom: 1.2rem;
+      }
+      label {
+        display: block;
+        margin-top: 1rem;
+        font-weight: 600;
+      }
+      input {
+        margin-top: 0.35rem;
+        width: 100%;
+        padding: 0.55rem 0.7rem;
+        border: 1px solid var(--gray-300);
+        border-radius: 6px;
+        font-size: 1rem;
+      }
+      .two-cols {
+        display: flex;
+        gap: 0.75rem;
+      }
+      .two-cols input {
+        flex: 1 1 0;
+      }
+      .social-row {
+        margin-top: 0.75rem;
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      .social-row input {
+        flex: 1 1 0;
+      }
+      .social-row button {
+        border: none;
+        background: none;
+        color: var(--gray-600);
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
+      #addSocial {
+        margin-top: 1rem;
+        padding: 0.45rem 1rem;
+        font-size: 0.95rem;
+        border: 1px dashed var(--brand-primary);
+        border-radius: 6px;
+        background: var(--gray-100);
+        cursor: pointer;
+        color: var(--brand-primary);
+      }
+      button[type="submit"] {
+        margin-top: 2rem;
+        padding: 0.7rem 1.6rem;
+        font-size: 1.05rem;
+        border: none;
+        border-radius: 8px;
+        background: var(--brand-primary);
+        color: #fff;
+        cursor: pointer;
+      }
+      footer {
+        margin-top: 3rem;
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>公司內部名片產生器</h1>
+
+    <form id="cardForm">
+      <label>
+        姓名 (NAME)
+        <input name="NAME" placeholder="王小明" required />
+      </label>
+      <label>
+        職稱 (TITLE)
+        <input name="TITLE" placeholder="Software Engineer" required />
+      </label>
+      <label>
+        電子信箱 (EMAIL)
+        <input name="EMAIL" type="email" placeholder="you@example.com" required />
+      </label>
+
+      <div class="two-cols">
+        <label style="flex:1">
+          電話 (PHONE)
+          <input name="PHONE" value="(02)2732-2701" />
+        </label>
+        <label style="flex:1">
+          官方/個人網站 (WEBSITE)
+          <input name="WEBSITE" value="cancerfree.io" />
+        </label>
+      </div>
+
+      <h2 style="margin-top:2.2rem;font-size:1.15rem;color:var(--gray-600)">社群連結 (可選)</h2>
+      <p style="font-size:0.9rem;margin:0.2rem 0 0.6rem;color:var(--gray-600)">點「新增」可加入多筆。</p>
+
+      <div id="socialContainer"></div>
+      <button id="addSocial" type="button">+ 新增社群連結</button>
+
+      <button type="submit">產生名片</button>
+    </form>
+
+    <footer>
+      產生後的新分頁可直接 Ctrl/Cmd + S 另存，內網環境即可離線存取。
+    </footer>
+
+    <script>
+      // ---- 動態新增／移除社群欄位 ----
+      const container = document.getElementById("socialContainer");
+      const addBtn = document.getElementById("addSocial");
+
+      function createSocialRow(name = "", url = "") {
+        const row = document.createElement("div");
+        row.className = "social-row";
+        row.innerHTML = `
+          <input name="social_name" placeholder="平台名稱 (如 LinkedIn)" value="${name}" />
+          <input name="social_url" placeholder="https://..." value="${url}" />
+          <button type="button" title="刪除此列">✕</button>
+        `;
+        row.querySelector("button").addEventListener("click", () => row.remove());
+        return row;
+      }
+
+      addBtn.addEventListener("click", () => container.appendChild(createSocialRow()));
+
+      // 預設先來一列 (方便使用者)
+      container.appendChild(createSocialRow());
+
+      // ---- 名片 HTML 樣板 (將 socials div 改為 {{SOCIAL_LINKS}}) ----
+      const template = `<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>極致炫技名片</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js" defer></script>
+
+    <style>
+      /* ---- 原始題目提供完整 style，建議保留 ---- */
+      :root {
+        --brand-primary: #1abc9c;  /* teal */
+        --brand-secondary: #2ecc71; /* jade green */
+        --brand-dark: #0e3d37;      /* glass backdrop tint */
+        --brand-light: #e6fffb;     /* mint bg */
+        --accent-light: #a8ffd9;    /* lighter for text */
+        --card-max-width: 380px;
+        --page-bg-light: radial-gradient(circle at 50% 120%, var(--brand-light) 0%, #0c9982 70%);
+        --page-bg-dark: radial-gradient(circle at 50% 120%, #052620 0%, #022e27 70%);
+      }
+      /* (以下 style 保留省略...) */
+    </style>
+  </head>
+  <body>
+    <div class="card-wrapper" data-tilt data-tilt-max="15" data-tilt-speed="600">
+      <div class="card-inner">
+        <div class="card-face front">
+          <h1 class="name">{{NAME}}</h1>
+          <p class="title">{{TITLE}}</p>
+          <p class="contact"><i class="fa-solid fa-envelope"></i>{{EMAIL}}</p>
+          <p class="contact"><i class="fa-solid fa-phone"></i>{{(02)2732-2701!!PHONE}}</p>
+          <p class="contact"><i class="fa-solid fa-globe"></i>{{cancerfree.io!!WEBSITE}}</p>
+          <div class="socials">
+            {{SOCIAL_LINKS}}
+          </div>
+        </div>
+        <div class="card-face back">
+          <div class="qr-container"></div>
+          <p class="tagline">"Put The Patient First"</p>
+        </div>
+      </div>
+    </div>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const card = document.querySelector(".card-wrapper");
+        VanillaTilt.init(card, { max: 15, speed: 600 });
+        card.addEventListener("click", () => card.classList.toggle("is-flipped"));
+      });
+    </script>
+  </body>
+</html>`;
+
+      // ---- 占位符取代 ----
+      function fillTemplate(tmpl, data) {
+        return tmpl.replace(/{{(.*?)}}/g, (_, expr) => {
+          if (expr.includes("!!")) {
+            const [def, key] = expr.split("!!");
+            return data[key] && data[key].trim() !== "" ? data[key] : def;
+          }
+          return data[expr] ?? "";
+        });
+      }
+
+      // ---- 表單送出 ----
+      document.getElementById("cardForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const formData = Object.fromEntries(new FormData(e.target).entries());
+
+        // 取得社群連結
+        const socials = [];
+        container.querySelectorAll(".social-row").forEach((row) => {
+          const name = row.querySelector("input[name='social_name']").value.trim();
+          const url = row.querySelector("input[name='social_url']").value.trim();
+          if (url) socials.push({ name: name || url, url });
+        });
+
+        // 根據網址猜一個 icon
+        const inferIcon = (u) => {
+          if (/linkedin/gi.test(u)) return "fa-linkedin";
+          if (/github/gi.test(u)) return "fa-github";
+          if (/twitter|x\.com/gi.test(u)) return "fa-twitter";
+          if (/facebook/gi.test(u)) return "fa-facebook";
+          return "fa-link";
+        };
+
+        const linksHTML = socials
+          .map((s) => `<a href="${s.url}" aria-label="${s.name}"><i class="fa-brands ${inferIcon(s.url)}"></i></a>`) // 若非 brands fallback 也 ok
+          .join("\n");
+
+        const html = fillTemplate(template, {
+          ...formData,
+          SOCIAL_LINKS: linksHTML,
+        });
+
+        const win = window.open();
+        win.document.open();
+        win.document.write(html);
+        win.document.close();
+      });
+    </script>
+  </body>
+</html>
