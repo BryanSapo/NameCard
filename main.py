@@ -1,6 +1,11 @@
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
 from jinja2 import Template
+import uuid
+
+# 儲存名片資料（注意：伺服器重啟就會消失）
+card_storage = {}
+
 
 app = FastAPI(title="Internal Card Generator")
 
@@ -133,10 +138,10 @@ async def index() -> HTMLResponse:
 
 @app.post("/generate", response_class=HTMLResponse)
 async def generate(request: Request) -> HTMLResponse:
-    """接收表單資料並輸出名片 HTML"""
+    """接收表單資料，儲存後轉跳到可分享名片網址"""
+
     form = await request.form()
 
-    # 直接使用 dict 取值；缺少則給預設
     def v(key: str, default: str = "") -> str:
         return (form.get(key) or '').strip() or default
 
@@ -146,40 +151,38 @@ async def generate(request: Request) -> HTMLResponse:
     phone = v("PHONE", "(02)2732-2701")
     website = v("WEBSITE", "cancerfree.io")
 
-    # social_name / social_url 可能多筆；form.getlist 取回 list
     social_names = form.getlist("social_name") if hasattr(form, "getlist") else [form.get("social_name")]
     social_urls = form.getlist("social_url") if hasattr(form, "getlist") else [form.get("social_url")]
 
-    # 組合連結 HTML
     def infer_icon(url: str) -> str:
-      url_l = url.lower()
-      BRAND_ICON_MAP = {
-          "github": "fa-brands fa-github",
-          "linkedin": "fa-brands fa-linkedin",
-          "twitter": "fa-brands fa-twitter",
-          "x.com": "fa-brands fa-x-twitter",
-          "facebook": "fa-brands fa-facebook",
-          "instagram": "fa-brands fa-instagram",
-          "youtube": "fa-brands fa-youtube",
-          "telegram": "fa-brands fa-telegram",
-          "slack": "fa-brands fa-slack",
-          "discord": "fa-brands fa-discord",
-          "dribbble": "fa-brands fa-dribbble",
-          "medium": "fa-brands fa-medium",
-          "reddit": "fa-brands fa-reddit",
-          "skype": "fa-brands fa-skype",
-          "stackoverflow": "fa-brands fa-stack-overflow",
-          "gitlab": "fa-brands fa-gitlab",
-          "bitbucket": "fa-brands fa-bitbucket",
-          "tiktok": "fa-brands fa-tiktok",
-          "wechat": "fa-brands fa-weixin",
-          "line": "fa-brands fa-line",
-          "mastodon": "fa-brands fa-mastodon",
-      }
-      for key, icon_class in BRAND_ICON_MAP.items():
-          if key in url_l:
-              return icon_class
-      return "fa-solid fa-link"
+        url_l = url.lower()
+        BRAND_ICON_MAP = {
+            "github": "fa-brands fa-github",
+            "linkedin": "fa-brands fa-linkedin",
+            "twitter": "fa-brands fa-twitter",
+            "x.com": "fa-brands fa-x-twitter",
+            "facebook": "fa-brands fa-facebook",
+            "instagram": "fa-brands fa-instagram",
+            "youtube": "fa-brands fa-youtube",
+            "telegram": "fa-brands fa-telegram",
+            "slack": "fa-brands fa-slack",
+            "discord": "fa-brands fa-discord",
+            "dribbble": "fa-brands fa-dribbble",
+            "medium": "fa-brands fa-medium",
+            "reddit": "fa-brands fa-reddit",
+            "skype": "fa-brands fa-skype",
+            "stackoverflow": "fa-brands fa-stack-overflow",
+            "gitlab": "fa-brands fa-gitlab",
+            "bitbucket": "fa-brands fa-bitbucket",
+            "tiktok": "fa-brands fa-tiktok",
+            "wechat": "fa-brands fa-weixin",
+            "line": "fa-brands fa-line",
+            "mastodon": "fa-brands fa-mastodon",
+        }
+        for key, icon_class in BRAND_ICON_MAP.items():
+            if key in url_l:
+                return icon_class
+        return "fa-solid fa-link"
 
     links = []
     for n, u in zip(social_names, social_urls):
@@ -192,16 +195,35 @@ async def generate(request: Request) -> HTMLResponse:
 
     social_links_html = "\n".join(links)
 
-    rendered_card = CARD_TEMPLATE.render(
-        NAME=name,
-        TITLE=title,
-        EMAIL=email,
-        PHONE=phone,
-        WEBSITE=website,
-        SOCIAL_LINKS=social_links_html,
-    )
+    # 產生唯一 ID 並儲存資料到記憶體
+    card_id = str(uuid.uuid4())[:8]
+    card_storage[card_id] = {
+        "NAME": name,
+        "TITLE": title,
+        "EMAIL": email,
+        "PHONE": phone,
+        "WEBSITE": website,
+        "SOCIAL_LINKS": social_links_html,
+    }
 
-    return HTMLResponse(content=rendered_card)
+    # 導向 /card/{card_id}，即可分享
+    return HTMLResponse(
+        content=f"""
+        <html><body>
+        <script>
+            window.location.href = "/card/{card_id}";
+        </script>
+        <p>名片已產生，若未自動跳轉請 <a href="/card/{card_id}">點此</a></p>
+        </body></html>
+        """
+    )
+@app.get("/card/{card_id}", response_class=HTMLResponse)
+async def view_card(card_id: str) -> HTMLResponse:
+    card_data = card_storage.get(card_id)
+    if not card_data:
+        return HTMLResponse(content="<h1>名片不存在</h1>", status_code=404)
+
+    return HTMLResponse(content=CARD_TEMPLATE.render(**card_data))
 
 
 # ---------------------------- How to Run ---------------------------- #
