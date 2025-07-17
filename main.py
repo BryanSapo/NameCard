@@ -34,7 +34,7 @@ FORM_HTML = Template(
     </style>
   </head>
   <body>
-    <h1>公司內部名片產生器 (FastAPI 版)</h1>
+    <h1>名片產生器</h1>
     <form id="cardForm" action="/generate" method="post" target="_blank">
       <label>姓名 (NAME) <input name="NAME" placeholder="王小明" required></label>
       <label>職稱 (TITLE) <input name="TITLE" placeholder="Software Engineer" required></label>
