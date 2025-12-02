@@ -110,7 +110,7 @@ CARD_TEMPLATE = Template(
         </div>
         <div class="card-face back">
           <div class="qr-container"></div>
-          <p class="tagline">"Put The Patient First"</p>
+          <p class="tagline"></p>
         </div>
       </div>
     </div>
