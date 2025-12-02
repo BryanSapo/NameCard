@@ -40,8 +40,8 @@ FORM_HTML = Template(
       <label>職稱 (TITLE) <input name="TITLE" placeholder="Software Engineer" required></label>
       <label>電子信箱 (EMAIL) <input name="EMAIL" type="email" placeholder="you@example.com" required></label>
       <div class="two-cols">
-        <label style="flex:1">電話 (PHONE) <input name="PHONE" value="(02)2732-2701"></label>
-        <label style="flex:1">官方/個人網站 (WEBSITE) <input name="WEBSITE" value="cancerfree.io"></label>
+        <label style="flex:1" required>電話 (PHONE) <input name="PHONE" placeholder="0987-654-321"></label>
+        <label style="flex:1" required>官方/個人網站 (WEBSITE) <input name="WEBSITE" placeholder="YourWebsite"></label>
       </div>
 
       <h2 style="margin-top:2.2rem;font-size:1.15rem;color:var(--gray-600)">社群連結 (可選)</h2>
@@ -148,8 +148,8 @@ async def generate(request: Request) -> HTMLResponse:
     name = v("NAME")
     title = v("TITLE")
     email = v("EMAIL")
-    phone = v("PHONE", "(02)2732-2701")
-    website = v("WEBSITE", "cancerfree.io")
+    phone = v("PHONE")
+    website = v("WEBSITE")
 
     social_names = form.getlist("social_name") if hasattr(form, "getlist") else [form.get("social_name")]
     social_urls = form.getlist("social_url") if hasattr(form, "getlist") else [form.get("social_url")]
