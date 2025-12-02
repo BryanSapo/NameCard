@@ -124,7 +124,7 @@
       /* -------------------- BACK SIDE -------------------- */
       .qr-container {
         margin: auto; width: 28%; aspect-ratio: 1/1;
-        background: url("https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://cancerfree.io") center/cover no-repeat;
+        background: url("https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{WEBSITE}}") center/cover no-repeat;
         border-radius: 12px; filter: drop-shadow(0 0 6px rgba(0,0,0,0.4));
       }
 
@@ -144,8 +144,8 @@
           <h1 class="name">{{NAME}}</h1>
           <p class="title">{{TITLE}}</p>
           <p class="contact"><i class="fa-solid fa-envelope"></i>{{EMAIL}}</p>
-          <p class="contact"><i class="fa-solid fa-phone"></i>{{(02)2732-2701!!PHONE}}</p>
-          <p class="contact"><i class="fa-solid fa-globe"></i>{{cancerfree.io!!WEBSITE}}</p>
+          <p class="contact"><i class="fa-solid fa-phone"></i>{{PHONE}}</p>
+          <p class="contact"><i class="fa-solid fa-globe"></i>{{WEBSITE}}</p>
           <div class="socials">
             <a href="{{LINK1}}" aria-label="{{LINK1_NAME}}"><i class="fa-brands fa-linkedin"></i></a>
             <a href="{{LINK2}}" aria-label="{{LINK2_NAME}}"><i class="fa-brands fa-github"></i></a>
